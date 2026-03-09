@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔐 Vocabulary Escape Room</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #00BCD4;
+    --yellow: #FFD600;
+    --orange: #FF6D00;
+    --pink: #FF4081;
+    --green: #00E676;
+    --dark: #1A1A2E;
+    --purple: #7C4DFF;
+    --bg: #0D1B2A;
+    --card-bg: rgba(255,255,255,0.06);
+    --locked: #555;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: #fff;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(0,188,212,0.15) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(124,77,255,0.15) 0%, transparent 50%),
+      repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.02) 40px, rgba(255,255,255,0.02) 41px),
+      repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.02) 40px, rgba(255,255,255,0.02) 41px);
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    padding: 30px 20px 10px;
+    position: relative;
+  }
+  .header-badge {
+    display: inline-block;
+    background: var(--yellow);
+    color: var(--dark);
+    font-family: 'Bangers', cursive;
+    font-size: 14px;
+    letter-spacing: 3px;
+    padding: 5px 18px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+
+  .main-title {
+    font-family: 'Bangers', cursive;
+    font-size: clamp(48px, 10vw, 90px);
+    letter-spacing: 6px;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--teal), var(--yellow), var(--orange));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    filter: drop-shadow(0 0 20px rgba(0,188,212,0.5));
+  }
+  .subtitle {
+    font-size: 16px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 8px;
+    font-weight: 600;
+  }
+
+  /* PROGRESS BAR */
+  .progress-container {
+    max-width: 700px;
+    margin: 20px auto;
+    padding: 0 20px;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--teal);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  .progress-bar-outer {
+    height: 12px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .progress-bar-inner {
+    height: 100%;
+    background: linear-gradient(90deg, var(--teal), var(--purple));
+    border-radius: 10px;
+    transition: width 0.5s ease;
+    position: relative;
+  }
+  .progress-bar-inner::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 20px;
+    background: white;
+    opacity: 0.3;
+    border-radius: 10px;
+    animation: shimmer 1.5s infinite;
+  }
+  @keyframes shimmer { 0%{opacity:0.1} 50%{opacity:0.4} 100%{opacity:0.1} }
+
+  /* SCORE DISPLAY */
+  .score-row {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    padding: 0 20px 20px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  .score-chip {
+    background: var(--card-bg);
+    border: 2px solid;
+    border-radius: 30px;
+    padding: 8px 20px;
+    font-weight: 800;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(10px);
+  }
+  .score-chip.total { border-color: var(--yellow); color: var(--yellow); }
+  .score-chip.s1 { border-color: var(--teal); color: var(--teal); }
+  .score-chip.s2 { border-color: var(--pink); color: var(--pink); }
+  .score-chip.s3 { border-color: var(--orange); color: var(--orange); }
+  .score-chip.s4 { border-color: var(--green); color: var(--green); }
+
+  /* ROOMS */
+  .rooms {
+    max-width: 750px;
+    margin: 0 auto;
+    padding: 0 20px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .room-card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    border: 2px solid rgba(255,255,255,0.1);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  .room-card.locked {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .room-card.locked::after {
+    content: '🔒 Complete the previous room first!';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bangers', cursive;
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: white;
+    background: rgba(0,0,0,0.7);
+    border-radius: 18px;
+  }
+  .room-card.completed {
+    border-color: var(--green);
+    box-shadow: 0 0 20px rgba(0,230,118,0.3);
+  }
+
+  .room-header {
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .room-icon {
+    font-size: 36px;
+    flex-shrink: 0;
+  }
+  .room-info { flex: 1; }
+  .room-number {
+    font-family: 'Bangers', cursive;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+  }
+  .room-title {
+    font-family: 'Bangers', cursive;
+    font-size: 26px;
+    letter-spacing: 2px;
+    line-height: 1.1;
+  }
+  .room-score-badge {
+    font-family: 'Bangers', cursive;
+    font-size: 18px;
+    letter-spacing: 1px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.1);
+    white-space: nowrap;
+  }
+  .room-card[data-room="1"] .room-title { color: var(--teal); }
+  .room-card[data-room="2"] .room-title { color: var(--pink); }
+  .room-card[data-room="3"] .room-title { color: var(--orange); }
+  .room-card[data-room="4"] .room-title { color: var(--green); }
+
+  .room-body {
+    padding: 0 24px 24px;
+    display: none;
+  }
+  .room-body.open { display: block; }
+
+  .instruction {
+    font-size: 14px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 18px;
+    font-weight: 600;
+    font-style: italic;
+  }
+
+  /* MATCHING EXERCISE */
+  .match-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .match-col { display: flex; flex-direction: column; gap: 8px; }
+  .match-word {
+    background: rgba(255,255,255,0.08);
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-weight: 700;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .match-word .num {
+    font-family: 'Bangers', cursive;
+    font-size: 20px;
+    color: rgba(255,255,255,0.3);
+    min-width: 24px;
+  }
+  .match-item {
+    background: rgba(255,255,255,0.08);
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .match-item .letter {
+    font-family: 'Bangers', cursive;
+    font-size: 18px;
+    color: rgba(255,255,255,0.4);
+    min-width: 20px;
+  }
+  .match-item .translation {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    direction: rtl;
+    flex: 1;
+    text-align: right;
+  }
+  .match-select {
+    background: rgba(0,0,0,0.4);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 4px 8px;
+    cursor: pointer;
+    width: 50px;
+    text-align: center;
+  }
+  .match-select:focus { outline: none; border-color: var(--teal); }
+  .match-select.correct { border-color: var(--green); background: rgba(0,230,118,0.2); color: var(--green); }
+  .match-select.wrong { border-color: var(--pink); background: rgba(255,64,129,0.2); color: var(--pink); }
+
+  /* MCQ */
+  .mcq-item {
+    margin-bottom: 18px;
+  }
+  .mcq-q {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+  .mcq-q .qnum {
+    font-family: 'Bangers', cursive;
+    font-size: 20px;
+    color: var(--pink);
+    margin-right: 6px;
+  }
+  .mcq-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .mcq-btn {
+    background: rgba(255,255,255,0.08);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mcq-btn:hover { background: rgba(255,255,255,0.15); border-color: var(--teal); }
+  .mcq-btn.selected { border-color: var(--teal); background: rgba(0,188,212,0.2); }
+  .mcq-btn.correct { border-color: var(--green); background: rgba(0,230,118,0.25); color: var(--green); }
+  .mcq-btn.wrong { border-color: var(--pink); background: rgba(255,64,129,0.2); color: var(--pink); }
+  .mcq-btn.reveal-correct { border-color: var(--green); background: rgba(0,230,118,0.1); }
+
+  /* FILL IN BLANKS */
+  .fib-item {
+    margin-bottom: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 2;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .fib-num {
+    font-family: 'Bangers', cursive;
+    font-size: 20px;
+    color: var(--orange);
+    margin-right: 4px;
+  }
+  .fib-input {
+    background: rgba(0,0,0,0.4);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 4px 10px;
+    width: 130px;
+    transition: border-color 0.2s;
+  }
+  .fib-input:focus { outline: none; border-color: var(--orange); }
+  .fib-input.correct { border-color: var(--green); background: rgba(0,230,118,0.15); color: var(--green); }
+  .fib-input.wrong { border-color: var(--pink); background: rgba(255,64,129,0.15); }
+  .word-bank {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    border: 1px dashed rgba(255,255,255,0.2);
+  }
+  .bank-word {
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--orange);
+    background: rgba(255,109,0,0.15);
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,109,0,0.3);
+  }
+  .bank-word.used { opacity: 0.3; text-decoration: line-through; }
+
+  /* WORD CHOICE (room 4) */
+  .wc-text {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 2.2;
+  }
+  .wc-pair {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+    vertical-align: middle;
+  }
+  .wc-opt {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 14px;
+    transition: all 0.2s;
+    color: var(--teal);
+    border-color: rgba(0,188,212,0.4);
+    background: rgba(0,188,212,0.1);
+  }
+  .wc-opt:hover { background: rgba(0,188,212,0.25); }
+  .wc-opt.selected { background: rgba(0,188,212,0.3); border-color: var(--teal); }
+  .wc-opt.correct { background: rgba(0,230,118,0.2); border-color: var(--green); color: var(--green); }
+  .wc-opt.wrong { background: rgba(255,64,129,0.15); border-color: var(--pink); color: var(--pink); text-decoration: line-through; }
+  .wc-slash { color: rgba(255,255,255,0.3); font-size: 13px; }
+
+  /* BUTTONS */
+  .check-btn {
+    margin-top: 20px;
+    padding: 12px 32px;
+    font-family: 'Bangers', cursive;
+    font-size: 20px;
+    letter-spacing: 2px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: block;
+    width: 100%;
+  }
+  .check-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+  .check-btn:active { transform: translateY(0); }
+  .room-card[data-room="1"] .check-btn { background: var(--teal); color: var(--dark); }
+  .room-card[data-room="2"] .check-btn { background: var(--pink); color: white; }
+  .room-card[data-room="3"] .check-btn { background: var(--orange); color: white; }
+  .room-card[data-room="4"] .check-btn { background: var(--green); color: var(--dark); }
+
+  .feedback-msg {
+    margin-top: 12px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 15px;
+    text-align: center;
+    display: none;
+  }
+  .feedback-msg.show { display: block; }
+  .feedback-msg.great { background: rgba(0,230,118,0.2); border: 2px solid var(--green); color: var(--green); }
+  .feedback-msg.try { background: rgba(255,214,0,0.2); border: 2px solid var(--yellow); color: var(--yellow); }
+
+  /* CODE DISPLAY */
+  .code-section {
+    max-width: 750px;
+    margin: 10px auto 0;
+    padding: 0 20px 30px;
+  }
+  .code-box {
+    background: rgba(0,0,0,0.5);
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .code-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,188,212,0.05), rgba(124,77,255,0.05));
+  }
+  .code-label {
+    font-family: 'Bangers', cursive;
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 10px;
+  }
+  .code-letters {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .code-letter {
+    width: 44px;
+    height: 54px;
+    background: rgba(255,255,255,0.08);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bangers', cursive;
+    font-size: 28px;
+    letter-spacing: 2px;
+    transition: all 0.4s ease;
+    color: rgba(255,255,255,0.2);
+  }
+  .code-letter.unlocked {
+    border-color: var(--yellow);
+    color: var(--yellow);
+    background: rgba(255,214,0,0.1);
+    box-shadow: 0 0 15px rgba(255,214,0,0.3);
+    animation: letterPop 0.5s ease;
+  }
+  @keyframes letterPop { 0%{transform:scale(0.5) rotate(-10deg)} 70%{transform:scale(1.2) rotate(2deg)} 100%{transform:scale(1)} }
+  .code-hint {
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    font-weight: 600;
+  }
+
+  /* PARTY INVITE */
+  .invite-section {
+    max-width: 750px;
+    margin: 0 auto 50px;
+    padding: 0 20px;
+    display: none;
+  }
+  .invite-section.show { display: block; }
+  .invite-card {
+    background: linear-gradient(135deg, #00BCD4, #7C4DFF);
+    border-radius: 24px;
+    padding: 36px 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,188,212,0.4);
+    animation: inviteIn 0.8s ease;
+  }
+  @keyframes inviteIn { from{transform:scale(0.8) translateY(30px); opacity:0} to{transform:scale(1) translateY(0); opacity:1} }
+  .invite-card::before {
+    content: '🎉🎊🎉🎊🎉🎊🎉🎊🎉🎊';
+    position: absolute;
+    top: 10px;
+    left: 0; right: 0;
+    font-size: 20px;
+    opacity: 0.3;
+    letter-spacing: 5px;
+  }
+  .invite-card::after {
+    content: '🎊🎉🎊🎉🎊🎉🎊🎉🎊🎉';
+    position: absolute;
+    bottom: 10px;
+    left: 0; right: 0;
+    font-size: 20px;
+    opacity: 0.3;
+    letter-spacing: 5px;
+  }
+  .invite-you {
+    font-family: 'Bangers', cursive;
+    font-size: 14px;
+    letter-spacing: 4px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 8px;
+  }
+  .invite-title {
+    font-family: 'Bangers', cursive;
+    font-size: clamp(36px, 8vw, 60px);
+    letter-spacing: 4px;
+    color: white;
+    text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+    margin-bottom: 8px;
+  }
+  .invite-what {
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 12px 20px;
+    margin: 16px 0;
+    font-weight: 800;
+    font-size: 16px;
+    color: white;
+  }
+  .invite-detail {
+    font-size: 15px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    line-height: 1.8;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  .invite-detail strong { color: var(--yellow); }
+  .invite-congrats {
+    margin-top: 20px;
+    font-family: 'Bangers', cursive;
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: var(--yellow);
+  }
+
+  /* DIVIDER */
+  .divider {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    margin: 20px 0;
+  }
+
+  .hint-text {
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    text-align: center;
+    margin-bottom: 12px;
+    font-style: italic;
+  }
+
+  /* Checkmark for completed */
+  .room-card.completed .room-header::after {
+    content: '✅';
+    font-size: 24px;
+    margin-left: auto;
+  }
+
+  /* VIDEO SECTION */
+  .video-section {
+    max-width: 750px;
+    margin: 0 auto 60px;
+    padding: 0 20px;
+  }
+  .video-label {
+    font-family: 'Bangers', cursive;
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--yellow);
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .video-title {
+    font-family: 'Bangers', cursive;
+    font-size: 32px;
+    letter-spacing: 2px;
+    color: white;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .video-subtitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.55);
+    text-align: center;
+    margin-bottom: 18px;
+  }
+  .video-wrapper {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 2px solid rgba(255,214,0,0.3);
+    box-shadow: 0 0 40px rgba(255,214,0,0.15);
+  }
+  .video-wrapper iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+  .video-tip {
+    margin-top: 16px;
+    background: rgba(255,214,0,0.08);
+    border: 1px solid rgba(255,214,0,0.25);
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+    text-align: center;
+  }
+  .video-tip strong { color: var(--yellow); }
+
+
+    .match-grid { grid-template-columns: 1fr; }
+    .mcq-options { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-badge">🔐 ENGLISH VOCABULARY CHALLENGE</div>
+  <div class="main-title">ESCAPE ROOM</div>
+  <div class="subtitle">Complete all 4 rooms to unlock the code and get your party invitation! 🎉</div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-container">
+  <div class="progress-label">
+    <span>🚪 ROOMS UNLOCKED</span>
+    <span id="progressText">0 / 4</span>
+  </div>
+  <div class="progress-bar-outer">
+    <div class="progress-bar-inner" id="progressBar" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- SCORES -->
+<div class="score-row">
+  <div class="score-chip total">⭐ TOTAL: <span id="totalScore">0</span> / 40</div>
+  <div class="score-chip s1">🔵 Room 1: <span id="score1">0</span>/10</div>
+  <div class="score-chip s2">🔴 Room 2: <span id="score2">0</span>/10</div>
+  <div class="score-chip s3">🟠 Room 3: <span id="score3">0</span>/10</div>
+  <div class="score-chip s4">🟢 Room 4: <span id="score4">0</span>/10</div>
+</div>
+
+<!-- ROOMS -->
+<div class="rooms">
+
+  <!-- ROOM 1: MATCHING -->
+  <div class="room-card" data-room="1" id="room1">
+    <div class="room-header" onclick="toggleRoom(1)">
+      <div class="room-icon">🗝️</div>
+      <div class="room-info">
+        <div class="room-number">ROOM 1 • MATCHING</div>
+        <div class="room-title">The Locked Vault</div>
+      </div>
+      <div class="room-score-badge" id="badge1">0/10 pts</div>
+    </div>
+    <div class="room-body open" id="body1">
+      <div class="instruction">💡 Match each English word to its correct Hebrew/Arabic translation. Write the letter in the box!</div>
+      
+      <div class="match-grid">
+        <div class="match-col">
+          <div class="match-word"><span class="num">1</span> among</div>
+          <div class="match-word"><span class="num">2</span> ceiling</div>
+          <div class="match-word"><span class="num">3</span> drawer</div>
+          <div class="match-word"><span class="num">4</span> explore</div>
+          <div class="match-word"><span class="num">5</span> immediately</div>
+          <div class="match-word"><span class="num">6</span> in case</div>
+          <div class="match-word"><span class="num">7</span> notice</div>
+          <div class="match-word"><span class="num">8</span> piece</div>
+        </div>
+        <div class="match-col">
+          <div class="match-item">
+            <span class="letter">a</span>
+            <span class="translation">במידה ו / בכל מקרה</span>
+            <select class="match-select" id="m1a" onchange="saveData()">
+              <option value="">–</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+            </select>
+          </div>
+          <div class="match-item">
+            <span class="letter">b</span>
+            <span class="translation">מגירה / נَرج</span>
+            <select class="match-select" id="m1b" onchange="saveData()">
+              <option value="">–</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+            </select>
+          </div>
+          <div class="match-item">
+            <span class="letter">c</span>
+            <span class="translation">להבחין / يلاحظ</span>
+            <select class="match-select" id="m1c" onchange="saveData()">
+              <option value="">–</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+            </select>
+          </div>
+          <div class="match-item">
+            <span class="letter">d</span>
+            <span class="translation">בקרב / ضِمن</span>
+            <select class="match-select" id="m1d" onchange="saveData()">
+              <option value="">–</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+            </select>
+          </div>
+          <div class="match-item">
+            <span class="letter">e</span>
+            <span class="translation">לחקור / يستكشف</span>
+            <select class="match-select" id="m1e" onchange="saveData()">
+              <option value="">–</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+            </select>
+          </div>
+          <div class="match-item">
+            <span class="letter">f</span>
+            <span class="translation">תקרה / سقف</span>
+            <select class="match-select" id="m1f" onchange="saveData()">
+              <option value="">–</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+            </select>
+          </div>
+          <div class="match-item">
+            <span class="letter">g</span>
+            <span class="translation">מיד / فوراً</span>
+            <select class="match-select" id="m1g" onchange="saveData()">
+              <option value="">–</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+            </select>
+          </div>
+          <div class="match-item">
+            <span class="letter">h</span>
+            <span class="translation">חתיכה / قطعة</span>
+            <select class="match-select" id="m1h" onchange="saveData()">
+              <option value="">–</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="hint-text">Answers: a=6, b=3, c=7, d=1, e=4, f=2, g=5, h=8</div>
+      <button class="check-btn" onclick="checkRoom1()">🔍 CHECK MY ANSWERS</button>
+      <div class="feedback-msg" id="fb1"></div>
+    </div>
+  </div>
+
+  <!-- ROOM 2: MCQ -->
+  <div class="room-card locked" data-room="2" id="room2">
+    <div class="room-header" onclick="toggleRoom(2)">
+      <div class="room-icon">🔦</div>
+      <div class="room-info">
+        <div class="room-number">ROOM 2 • CIRCLE THE ANSWER</div>
+        <div class="room-title">The Dark Corridor</div>
+      </div>
+      <div class="room-score-badge" id="badge2">0/10 pts</div>
+    </div>
+    <div class="room-body" id="body2">
+      <div class="instruction">💡 Circle the correct word to complete each sentence. Each correct answer = 1 point!</div>
+
+      <div id="mcqContainer"></div>
+
+      <button class="check-btn" onclick="checkRoom2()">🔍 CHECK MY ANSWERS</button>
+      <div class="feedback-msg" id="fb2"></div>
+    </div>
+  </div>
+
+  <!-- ROOM 3: FILL IN BLANKS -->
+  <div class="room-card locked" data-room="3" id="room3">
+    <div class="room-header" onclick="toggleRoom(3)">
+      <div class="room-icon">🧩</div>
+      <div class="room-info">
+        <div class="room-number">ROOM 3 • FILL IN THE BLANKS</div>
+        <div class="room-title">The Secret Chamber</div>
+      </div>
+      <div class="room-score-badge" id="badge3">0/10 pts</div>
+    </div>
+    <div class="room-body" id="body3">
+      <div class="instruction">💡 Choose from the word bank to complete each sentence correctly!</div>
+      <div class="word-bank" id="wordBank3">
+        <span class="bank-word">everywhere</span>
+        <span class="bank-word">objects</span>
+        <span class="bank-word">piece</span>
+        <span class="bank-word">explore</span>
+        <span class="bank-word">brain</span>
+        <span class="bank-word">closely</span>
+        <span class="bank-word">fine</span>
+      </div>
+
+      <div class="fib-item"><span class="fib-num">1.</span> Look <input class="fib-input" id="fib1" placeholder="..." onchange="saveData()" oninput="updateWordBank()"> and you'll find the answer.</div>
+      <div class="fib-item"><span class="fib-num">2.</span> A monkey's <input class="fib-input" id="fib2" placeholder="..." onchange="saveData()" oninput="updateWordBank()"> weighs about one and a half kilos.</div>
+      <div class="fib-item"><span class="fib-num">3.</span> When we do a puzzle, I'm always the one that puts in the last <input class="fib-input" id="fib3" placeholder="..." onchange="saveData()" oninput="updateWordBank()">.</div>
+      <div class="fib-item"><span class="fib-num">4.</span> Shelly hit her head, but she says she's <input class="fib-input" id="fib4" placeholder="..." onchange="saveData()" oninput="updateWordBank()">.</div>
+      <div class="fib-item"><span class="fib-num">5.</span> We lost our keys, looked <input class="fib-input" id="fib5" placeholder="..." onchange="saveData()" oninput="updateWordBank()"> and finally found them in the fridge.</div>
+      <div class="fib-item"><span class="fib-num">6.</span> When Jason travels, he loves to <input class="fib-input" id="fib6" placeholder="..." onchange="saveData()" oninput="updateWordBank()"> new places.</div>
+      <div class="fib-item"><span class="fib-num">7.</span> We saw strange <input class="fib-input" id="fib7" placeholder="..." onchange="saveData()" oninput="updateWordBank()"> in the sky.</div>
+
+      <button class="check-btn" onclick="checkRoom3()">🔍 CHECK MY ANSWERS</button>
+      <div class="feedback-msg" id="fb3"></div>
+    </div>
+  </div>
+
+  <!-- ROOM 4: WORD CHOICE = THE INVITATION ITSELF -->
+  <div class="room-card locked" data-room="4" id="room4">
+    <div class="room-header" onclick="toggleRoom(4)">
+      <div class="room-icon">🎉</div>
+      <div class="room-info">
+        <div class="room-number">ROOM 4 • THE PARTY INVITATION</div>
+        <div class="room-title">You Are Invited!</div>
+      </div>
+      <div class="room-score-badge" id="badge4">0/10 pts</div>
+    </div>
+    <div class="room-body" id="body4">
+      <div class="instruction">💡 You found the invitation! But some words are missing — click the correct word from each pair to reveal the full invitation! 🎊</div>
+
+      <!-- Invitation card with interactive word choices -->
+      <div style="background:linear-gradient(135deg,rgba(0,188,212,0.15),rgba(124,77,255,0.15));border:2px solid rgba(0,188,212,0.4);border-radius:18px;padding:20px 22px;margin-bottom:16px;">
+        <div style="text-align:center;margin-bottom:14px;">
+          <div style="font-family:'Bangers',cursive;font-size:11px;letter-spacing:4px;color:rgba(255,255,255,0.5);margin-bottom:4px;">YOU ARE INVITED TO A</div>
+          <div style="font-family:'Bangers',cursive;font-size:38px;letter-spacing:4px;color:var(--yellow);text-shadow:0 0 20px rgba(255,214,0,0.4);">🎉 PARTY! 🎉</div>
+        </div>
+        <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:12px 16px;margin-bottom:14px;text-align:center;">
+          <span style="font-family:'Bangers',cursive;font-size:14px;letter-spacing:2px;color:var(--teal);">WHAT IS IT?</span>
+          <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,0.85);margin-left:8px;">It's a mystery. During dinner, someone takes something valuable.</span>
+        </div>
+        <div style="background:rgba(0,0,0,0.2);border-radius:12px;padding:14px 16px;">
+          <div style="font-family:'Bangers',cursive;font-size:14px;letter-spacing:2px;color:var(--teal);margin-bottom:10px;">WHAT DO YOU DO?</div>
+          <div class="wc-text" id="wcText"></div>
+        </div>
+      </div>
+
+      <button class="check-btn" onclick="checkRoom4()">🎊 REVEAL THE INVITATION!</button>
+      <div class="feedback-msg" id="fb4"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CODE -->
+<div class="code-section">
+  <div class="code-box">
+    <div class="code-label">🔓 THE SECRET CODE</div>
+    <div class="code-letters" id="codeLetters"></div>
+    <div class="code-hint" id="codeHint">Complete all rooms to reveal the code!</div>
+  </div>
+</div>
+
+<!-- PARTY INVITE -->
+<div class="invite-section" id="partyInvite">
+  <div class="invite-card">
+    <div class="invite-you">YOU ARE INVITED TO A</div>
+    <div class="invite-title">🎉 PARTY! 🎉</div>
+    <div class="invite-what">
+      <strong>WHAT IS IT?</strong> It's a mystery. During dinner,<br>someone takes something valuable.
+    </div>
+    <div class="invite-detail">
+      <strong>WHAT DO YOU DO?</strong><br>
+      You work together to solve the mystery. You can't leave until you find who did it.<br>
+      You can find clues <strong>everywhere</strong>, so make sure to <strong>examine</strong> every <strong>object</strong> in the room.<br>
+      You will <strong>notice</strong> clues that are <strong>hiding</strong> on the table, in <strong>drawers</strong>, and even on the <strong>ceiling</strong>!<br>
+      Look <strong>closely</strong> at every <strong>lamp</strong> of furniture.<br>
+      When you find a clue, you must <strong>immediately</strong> show it to everyone so that you can solve the mystery as a team.
+    </div>
+    <div class="invite-congrats">🏆 CONGRATULATIONS! You escaped! 🏆</div>
+  </div>
+</div>
+
+<!-- VIDEO SECTION -->
+<div class="video-section" id="videoSection">
+  <div class="video-label">🎬 BONUS: WATCH & LEARN</div>
+  <div class="video-title">How to Escape a Real Escape Room!</div>
+  <div class="video-subtitle">Watch the video and discover the best strategies to escape — just like a pro! 🔓</div>
+  <div class="video-wrapper">
+    <iframe
+      src="https://www.youtube.com/embed/YU6aXDR997g"
+      title="How to Escape an Escape Room"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen>
+    </iframe>
+  </div>
+  <div class="video-tip">💡 <strong>Discussion:</strong> What strategies from the video could you use in a real escape room? Share your ideas with the class!</div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────
+const MCQ_DATA = [
+  { q:"In February, I usually take a jacket ... it rains.", opts:["both","in case","by the time"], ans:1 },
+  { q:"The baby wasn't feeling well, so the doctor ... her.", opts:["examined","hid","escaped"], ans:0 },
+  { q:"My mother called and told me to come home ....", opts:["clever","immediately","closely"], ans:1 },
+  { q:"This singer is popular ... teenagers.", opts:["object","piece","among"], ans:2 },
+  { q:"Are the tickets for the concert still ... ?", opts:["available","fine","everywhere"], ans:0 },
+  { q:"David is so tall he can touch the ... with his fingers.", opts:["carpet","drawer","ceiling"], ans:2 },
+  { q:"The teacher ... that something was wrong when she came into the room.", opts:["examined","explored","noticed"], ans:2 }
+];
+
+const WC_ANSWERS = {}; // filled by buildWC
+let WC_TOTAL = 10;
+const WC_DATA_UNUSED = [
+  { before:"You can find clues (רמזים) ", pairs:[["in case","everywhere"]], correct:[1], after:"" },
+  { before:", so make sure to ", pairs:[["escape","examine"]], correct:[1], after:"" },
+  { before:" every ", pairs:[["object","brain"]], correct:[0], after:" in the room. You will " },
+  { before:"", pairs:[["escape","notice"]], correct:[1], after:" clues that are " },
+  { before:"", pairs:[["hiding","exploring"]], correct:[0], after:" on the table, in " },
+  { before:"", pairs:[["pieces","drawers"]], correct:[1], after:", and even on the " },
+  { before:"", pairs:[["brain","ceiling"]], correct:[1], after:"! Look " },
+  { before:"", pairs:[["closely","both"]], correct:[0], after:" at every " },
+  { before:"", pairs:[["lamp","piece"]], correct:[0], after:" of furniture. When you find a clue, you must " },
+  { before:"", pairs:[["immediately","in case"]], correct:[0], after:" show it to everyone so that you can solve the mystery as a team." }
+];
+
+const CODE_WORD = "ESCAPE ROOM";
+const ROOM_SCORES = [0,0,0,0];
+const ROOM_DONE = [false,false,false,false];
+let mcqSelected = {};
+let wcSelected = {};
+
+// ─── STORAGE KEY ────────────────────────────────
+const SK = "escapeRoom_v2";
+
+// ─── INIT ────────────────────────────────────────
+window.addEventListener('load', () => {
+  buildMCQ();
+  buildWC();
+  buildCode();
+  loadData();
+  updateUI();
+});
+
+// ─── BUILD CODE ──────────────────────────────────
+function buildCode() {
+  const el = document.getElementById('codeLetters');
+  [...CODE_WORD].forEach((ch, i) => {
+    const div = document.createElement('div');
+    div.className = 'code-letter';
+    div.id = 'cl' + i;
+    div.textContent = ch === ' ' ? ' ' : '?';
+    if (ch === ' ') { div.style.width = '20px'; div.style.background = 'transparent'; div.style.border = 'none'; }
+    el.appendChild(div);
+  });
+}
+
+// ─── BUILD MCQ ───────────────────────────────────
+function buildMCQ() {
+  const container = document.getElementById('mcqContainer');
+  MCQ_DATA.forEach((item, qi) => {
+    const div = document.createElement('div');
+    div.className = 'mcq-item';
+    const optHtml = item.opts.map((opt, oi) =>
+      `<button class="mcq-btn" id="mcq_${qi}_${oi}" onclick="selectMCQ(${qi},${oi})">${String.fromCharCode(97+oi)}. ${opt}</button>`
+    ).join('');
+    div.innerHTML = `<div class="mcq-q"><span class="qnum">${qi+1}.</span>${item.q}</div><div class="mcq-options">${optHtml}</div>`;
+    container.appendChild(div);
+  });
+}
+
+function selectMCQ(qi, oi) {
+  if (ROOM_DONE[1]) return;
+  mcqSelected[qi] = oi;
+  MCQ_DATA.forEach((_, i) => {
+    MCQ_DATA[i].opts.forEach((__, j) => {
+      const btn = document.getElementById(`mcq_${i}_${j}`);
+      if (btn) btn.className = 'mcq-btn' + (mcqSelected[i] === j ? ' selected' : '');
+    });
+  });
+  saveData();
+}
+
+// ─── BUILD WORD CHOICE ───────────────────────────
+function buildWC() {
+  const container = document.getElementById('wcText');
+  // Segments: text before, [word pairs], text after
+  // Matches image 7 exactly
+  const segments = [
+    { t: "You work together to solve the mystery. You can't leave until you find who did it. You can find clues (רמזים) " },
+    { pair: ["in case","everywhere"], correct: 1 },
+    { t: ", so make sure to " },
+    { pair: ["escape","examine"], correct: 1 },
+    { t: " every " },
+    { pair: ["object","brain"], correct: 0 },
+    { t: " in the room. You will " },
+    { pair: ["escape","notice"], correct: 1 },
+    { t: " clues that are " },
+    { pair: ["hiding","exploring"], correct: 0 },
+    { t: " on the table, in " },
+    { pair: ["pieces","drawers"], correct: 1 },
+    { t: ", and even on the " },
+    { pair: ["brain","ceiling"], correct: 1 },
+    { t: "! Look " },
+    { pair: ["closely","both"], correct: 0 },
+    { t: " at every " },
+    { pair: ["lamp","piece"], correct: 0 },
+    { t: " of furniture. When you find a clue, you must " },
+    { pair: ["immediately","in case"], correct: 0 },
+    { t: " show it to everyone so that you can solve the mystery as a team." }
+  ];
+
+  let html = '<p style="font-size:14px;font-weight:600;line-height:2.6;color:rgba(255,255,255,0.9)">';
+  let pairIdx = 0;
+  segments.forEach(seg => {
+    if (seg.t) {
+      html += seg.t;
+    } else {
+      const idx = pairIdx;
+      html += `<span class="wc-pair">`;
+      seg.pair.forEach((word, wi) => {
+        html += `<span class="wc-opt" id="wc_${idx}_${wi}" onclick="selectWC2(${idx},${wi})">${word}</span>`;
+        if (wi < seg.pair.length - 1) html += `<span class="wc-slash"> / </span>`;
+      });
+      html += `</span>`;
+      // store correct answer
+      WC_ANSWERS[idx] = seg.correct;
+      pairIdx++;
+    }
+  });
+  html += '</p>';
+  container.innerHTML = html;
+  WC_TOTAL = pairIdx;
+}
+
+function selectWC2(idx, wi) {
+  if (ROOM_DONE[3]) return;
+  wcSelected[idx] = wi;
+  const pair = document.querySelectorAll(`[id^="wc_${idx}_"]`);
+  pair.forEach((el, j) => { el.className = 'wc-opt' + (j === wi ? ' selected' : ''); });
+  saveData();
+}
+
+function selectWC(idx, wi) { selectWC2(idx, wi); }
+
+// ─── TOGGLE ROOMS ────────────────────────────────
+function toggleRoom(n) {
+  const body = document.getElementById('body' + n);
+  if (body) body.classList.toggle('open');
+}
+
+// ─── CHECK ROOM 1 (Matching) ─────────────────────
+const MATCH1_ANS = { a:'6', b:'3', c:'7', d:'1', e:'4', f:'2', g:'5', h:'8' };
+
+function checkRoom1() {
+  let score = 0;
+  ['a','b','c','d','e','f','g','h'].forEach(letter => {
+    const sel = document.getElementById('m1' + letter);
+    const correct = sel.value === MATCH1_ANS[letter];
+    sel.className = 'match-select ' + (correct ? 'correct' : (sel.value ? 'wrong' : ''));
+    if (correct) score++;
+  });
+  const pts = score + 2; // 8 words → scale to /10
+  const finalScore = Math.round((score / 8) * 10);
+  setRoomScore(0, finalScore, score >= 6);
+  showFeedback(1, score, 8);
+  saveData();
+}
+
+// ─── CHECK ROOM 2 (MCQ) ──────────────────────────
+function checkRoom2() {
+  let score = 0;
+  MCQ_DATA.forEach((item, qi) => {
+    item.opts.forEach((_, oi) => {
+      const btn = document.getElementById(`mcq_${qi}_${oi}`);
+      if (!btn) return;
+      btn.className = 'mcq-btn';
+      if (mcqSelected[qi] === oi) {
+        btn.className = oi === item.ans ? 'mcq-btn correct' : 'mcq-btn wrong';
+      } else if (oi === item.ans) {
+        btn.className = 'mcq-btn reveal-correct';
+      }
+    });
+    if (mcqSelected[qi] === item.ans) score++;
+  });
+  const finalScore = Math.round((score / 7) * 10);
+  setRoomScore(1, finalScore, score >= 5);
+  showFeedback(2, score, 7);
+  saveData();
+}
+
+// ─── CHECK ROOM 3 (Fill in Blanks) ───────────────
+const FIB_ANS = ['closely','brain','piece','fine','everywhere','explore','objects'];
+
+function checkRoom3() {
+  let score = 0;
+  FIB_ANS.forEach((ans, i) => {
+    const input = document.getElementById('fib' + (i+1));
+    const val = input.value.trim().toLowerCase();
+    if (val === ans) { input.className = 'fib-input correct'; score++; }
+    else { input.className = 'fib-input wrong'; }
+  });
+  const finalScore = Math.round((score / 7) * 10);
+  setRoomScore(2, finalScore, score >= 5);
+  showFeedback(3, score, 7);
+  saveData();
+}
+
+function checkRoom4() {
+  let score = 0;
+  for (let idx = 0; idx < WC_TOTAL; idx++) {
+    const correctWi = WC_ANSWERS[idx];
+    [0,1].forEach(wi => {
+      const el = document.getElementById(`wc_${idx}_${wi}`);
+      if (!el) return;
+      el.className = 'wc-opt';
+      if (wcSelected[idx] === wi) {
+        el.className = wi === correctWi ? 'wc-opt correct' : 'wc-opt wrong';
+      } else if (wi === correctWi) {
+        el.className = 'wc-opt reveal-correct';
+      }
+    });
+    if (wcSelected[idx] === correctWi) score++;
+  }
+  setRoomScore(3, score, score >= 7);
+  showFeedback(4, score, WC_TOTAL);
+  if (score >= 7) {
+    setTimeout(() => {
+      document.getElementById('partyInvite').classList.add('show');
+      document.getElementById('partyInvite').scrollIntoView({behavior:'smooth'});
+    }, 600);
+  }
+  saveData();
+}
+
+// ─── HELPERS ─────────────────────────────────────
+function setRoomScore(idx, score, passed) {
+  ROOM_SCORES[idx] = score;
+  if (passed && !ROOM_DONE[idx]) {
+    ROOM_DONE[idx] = true;
+    document.getElementById('room' + (idx+1)).classList.add('completed');
+    // unlock next
+    if (idx < 3) {
+      const next = document.getElementById('room' + (idx+2));
+      next.classList.remove('locked');
+      document.getElementById('body' + (idx+2)).classList.add('open');
+    }
+  }
+  updateUI();
+}
+
+function updateUI() {
+  const total = ROOM_SCORES.reduce((a,b) => a+b, 0);
+  document.getElementById('totalScore').textContent = total;
+  [1,2,3,4].forEach(n => {
+    document.getElementById('score' + n).textContent = ROOM_SCORES[n-1];
+    document.getElementById('badge' + n).textContent = ROOM_SCORES[n-1] + '/10 pts';
+  });
+
+  const done = ROOM_DONE.filter(Boolean).length;
+  document.getElementById('progressText').textContent = done + ' / 4';
+  document.getElementById('progressBar').style.width = (done / 4 * 100) + '%';
+
+  updateCode();
+
+  if (ROOM_DONE.every(Boolean)) {
+    document.getElementById('partyInvite').classList.add('show');
+  }
+}
+
+function updateCode() {
+  const letters = [...CODE_WORD];
+  let unlocked = 0;
+  ROOM_DONE.forEach((done, i) => {
+    if (done) {
+      const perRoom = Math.ceil(CODE_WORD.replace(' ','').length / 4);
+      const wordNoSpace = CODE_WORD.split('').filter(c => c !== ' ');
+      const start = i * Math.ceil(wordNoSpace.length / 4);
+      const end = Math.min(start + Math.ceil(wordNoSpace.length / 4), wordNoSpace.length);
+      // map back to original indices
+      let wi = 0;
+      [...CODE_WORD].forEach((ch, ci) => {
+        if (ch === ' ') return;
+        if (wi >= start && wi < end) {
+          const el = document.getElementById('cl' + ci);
+          if (el) el.classList.add('unlocked');
+          if (el) el.textContent = ch;
+        }
+        wi++;
+      });
+    }
+  });
+
+  const hintEl = document.getElementById('codeHint');
+  const doneCount = ROOM_DONE.filter(Boolean).length;
+  if (doneCount === 0) hintEl.textContent = 'Complete rooms to reveal letters...';
+  else if (doneCount < 4) hintEl.textContent = `${doneCount * Math.ceil(10/4)} letters unlocked! Keep going! 🔓`;
+  else hintEl.textContent = '🎉 CODE FULLY UNLOCKED! ' + CODE_WORD + ' 🎉';
+}
+
+function showFeedback(room, score, total) {
+  const el = document.getElementById('fb' + room);
+  el.classList.add('show');
+  const pct = score / total;
+  if (pct >= 0.8) {
+    el.className = 'feedback-msg show great';
+    el.textContent = `🎉 Amazing! ${score}/${total} correct! Room unlocked! 🔓`;
+  } else if (pct >= 0.5) {
+    el.className = 'feedback-msg show try';
+    el.textContent = `⚡ Good try! ${score}/${total} correct. Room unlocked! Keep practicing!`;
+  } else {
+    el.className = 'feedback-msg show try';
+    el.textContent = `💪 ${score}/${total} correct. Review your answers and try again!`;
+  }
+}
+
+function updateWordBank() {
+  const used = [1,2,3,4,5,6,7].map(i => document.getElementById('fib'+i)?.value.trim().toLowerCase()).filter(Boolean);
+  document.querySelectorAll('#wordBank3 .bank-word').forEach(el => {
+    el.classList.toggle('used', used.includes(el.textContent.toLowerCase()));
+  });
+}
+
+// ─── PERSISTENCE (localStorage) ──────────────────
+function saveData() {
+  const state = {
+    match1: {},
+    mcq: mcqSelected,
+    fib: {},
+    wc: wcSelected,
+    roomDone: ROOM_DONE,
+    roomScores: ROOM_SCORES
+  };
+  ['a','b','c','d','e','f','g','h'].forEach(l => {
+    const el = document.getElementById('m1' + l);
+    if (el) state.match1[l] = el.value;
+  });
+  [1,2,3,4,5,6,7].forEach(i => {
+    const el = document.getElementById('fib' + i);
+    if (el) state.fib[i] = el.value;
+  });
+  try { localStorage.setItem(SK, JSON.stringify(state)); } catch(e) {}
+}
+
+function loadData() {
+  let state;
+  try { state = JSON.parse(localStorage.getItem(SK)); } catch(e) {}
+  if (!state) return;
+
+  // Restore matching
+  if (state.match1) {
+    Object.entries(state.match1).forEach(([l, v]) => {
+      const el = document.getElementById('m1' + l);
+      if (el) el.value = v;
+    });
+  }
+
+  // Restore MCQ
+  if (state.mcq) {
+    mcqSelected = state.mcq;
+    Object.entries(mcqSelected).forEach(([qi, oi]) => {
+      const btn = document.getElementById(`mcq_${qi}_${oi}`);
+      if (btn) btn.classList.add('selected');
+    });
+  }
+
+  // Restore FIB
+  if (state.fib) {
+    Object.entries(state.fib).forEach(([i, v]) => {
+      const el = document.getElementById('fib' + i);
+      if (el) el.value = v;
+    });
+    updateWordBank();
+  }
+
+  // Restore WC
+  if (state.wc) {
+    wcSelected = state.wc;
+    Object.entries(wcSelected).forEach(([idx, wi]) => {
+      const el = document.getElementById(`wc_${idx}_${wi}`);
+      if (el) el.classList.add('selected');
+    });
+  }
+
+  // Restore room state
+  if (state.roomDone) {
+    state.roomDone.forEach((done, i) => {
+      if (done) ROOM_DONE[i] = true;
+    });
+  }
+  if (state.roomScores) {
+    state.roomScores.forEach((s, i) => { ROOM_SCORES[i] = s; });
+  }
+
+  // Apply room unlock states
+  ROOM_DONE.forEach((done, i) => {
+    if (done) {
+      document.getElementById('room' + (i+1)).classList.add('completed');
+      if (i < 3) document.getElementById('room' + (i+2)).classList.remove('locked');
+    }
+  });
+}
+</script>
+</body>
+</html>
